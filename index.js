@@ -19,19 +19,37 @@ let notes = [
     content: "holis",
     important: true,
   },
+  {
+    name: "My job 2",
+    id: 2,
+    status: "processed",
+    data: [4, 5, 6],
+    result: "something",
+    content: "hello",
+    important: true,
+  },
+  {
+    name: "My job 3",
+    id: 3,
+    status: "processed",
+    data: [7, 8, 9],
+    result: "something else",
+    content: "ciao",
+    important: false,
+  },
 ];
 
+//GET
 app.get("/", (request, response) => {
   response.send("<h1>Hola mundo</h1>");
 });
 
-app.get("/api/notes", (request, response) => {
-  response.json(notes);
-});
+// app.get("/api/notes", (request, response) => {
+//   response.json(notes);
+// });
 
 app.get("/api/notes/:id", (request, response) => {
   const id = Number(request.params.id);
-  console.log({ id });
   const note = notes.find((note) => note.id === id);
 
   if (note) {
@@ -41,12 +59,29 @@ app.get("/api/notes/:id", (request, response) => {
   }
 });
 
+app.get("/api/notes/", (request, response) => {
+  const status = request.query.status;
+  let newNotes = notes;
+
+  if (Object.keys(request.query).length > 0) {
+    newNotes = notes.filter((note) => note.status === status);
+  }
+
+  if (newNotes) {
+    response.json(newNotes);
+  } else {
+    response.status(404).end();
+  }
+});
+
+//DELETE
 app.delete("/api/notes/:id", (request, response) => {
   const id = Number(request.params.id);
   notes = notes.filter((note) => note.id !== id);
   response.status(204).end();
 });
 
+//POST
 app.post("/api/notes", (request, response) => {
   const note = request.body;
 

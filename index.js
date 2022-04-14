@@ -15,7 +15,7 @@ let notes = [];
 
 //GET
 app.get("/", (request, response) => {
-  response.send("<h1>Hola mundo</h1>");
+  response.redirect("https://hidden-river-08736.herokuapp.com/");
 });
 
 app.get("/api/notes/:id", async (request, response) => {

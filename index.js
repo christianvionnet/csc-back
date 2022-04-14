@@ -1,111 +1,100 @@
-const express = require("express");
-const cors = require("cors");
+require("dotenv").config();
+require("./mongo");
 
+const express = require("express");
 const app = express();
+const cors = require("cors");
 const logger = require("./loggerMiddleware");
+const Note = require("./models/Note");
 
 app.use(cors());
 app.use(express.json());
-
 app.use(logger);
 
-let notes = [
-  {
-    name: "My job 1",
-    id: 1,
-    status: "pending",
-    data: [1, 2, 3],
-    result: "something",
-    content: "holis",
-    important: true,
-  },
-  {
-    name: "My job 2",
-    id: 2,
-    status: "processed",
-    data: [4, 5, 6],
-    result: "something",
-    content: "hello",
-    important: true,
-  },
-  {
-    name: "My job 3",
-    id: 3,
-    status: "processed",
-    data: [7, 8, 9],
-    result: "something else",
-    content: "ciao",
-    important: false,
-  },
-];
+let notes = [];
 
 //GET
 app.get("/", (request, response) => {
   response.send("<h1>Hola mundo</h1>");
 });
 
-// app.get("/api/notes", (request, response) => {
-//   response.json(notes);
-// });
+app.get("/api/notes/:id", async (request, response) => {
+  const { id } = request.params;
 
-app.get("/api/notes/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const note = notes.find((note) => note.id === id);
-
-  if (note) {
-    response.json(note);
-  } else {
-    response.status(404).end();
+  try {
+    const note = await Note.findById(id);
+    if (note) {
+      response.json(note);
+    } else {
+      response.status(404).end();
+    }
+  } catch (error) {
+    console.log(error);
   }
 });
 
-app.get("/api/notes/", (request, response) => {
-  const status = request.query.status;
-  let newNotes = notes;
+//GET STATUS
+app.get("/api/notes/", async (request, response) => {
+  const { status } = request.query;
 
-  if (Object.keys(request.query).length > 0) {
-    newNotes = notes.filter((note) => note.status === status);
-  }
+  console.log(request.query);
 
-  if (newNotes) {
-    response.json(newNotes);
-  } else {
-    response.status(404).end();
+  try {
+    if (Object.keys(request.query).length === 0) {
+      const allNotes = await Note.find({});
+      response.json(allNotes);
+      return;
+    }
+    const notes = await Note.find({ status });
+    if (notes) {
+      response.json(notes);
+    } else {
+      response.status(404).end();
+    }
+  } catch (error) {
+    console.log(error);
   }
 });
 
 //DELETE
-app.delete("/api/notes/:id", (request, response) => {
-  const id = Number(request.params.id);
-  notes = notes.filter((note) => note.id !== id);
-  response.status(204).end();
+app.delete("/api/notes/:id", async (request, response) => {
+  const { id } = request.params;
+
+  try {
+    const notes = await Note.findByIdAndRemove(id);
+    response.status(204).end();
+  } catch (error) {
+    console.log(error);
+    response.status(400).end();
+  }
 });
 
 //POST
-app.post("/api/notes", (request, response) => {
+app.post("/api/notes", async (request, response) => {
   const note = request.body;
 
-  if (!note || !note.content) {
+  if (!note.name) {
     return response.status(400).json({
-      error: "note.content is missing",
+      error: "Required fields are missing",
     });
   }
 
-  const ids = notes.map((note) => note.id);
-  const maxId = Math.max(...ids);
+  try {
+    const newNote = new Note({
+      name: note.name,
+      status: note.status,
+      data: note.data,
+      result: note.result,
+    });
 
-  const newNote = {
-    id: maxId + 1,
-    content: note.content,
-    important: typeof note.important !== "undefined" ? note.important : false,
-  };
-
-  notes = [...notes, newNote];
-
-  response.status(201).json(newNote);
+    const savedNote = await newNote.save();
+    response.json(savedNote);
+  } catch (error) {
+    console.log(error);
+  }
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
   console.log(`server running on port ${PORT}`);

@@ -6,6 +6,7 @@ const app = express();
 const cors = require("cors");
 const logger = require("./loggerMiddleware");
 const Note = require("./models/Note");
+const usersRouter = require("./controllers/users");
 
 app.use(cors());
 app.use(express.json());
@@ -36,9 +37,6 @@ app.get("/api/notes/:id", async (request, response) => {
 //GET STATUS
 app.get("/api/notes/", async (request, response) => {
   const { status } = request.query;
-
-  console.log(request.query);
-
   try {
     if (Object.keys(request.query).length === 0) {
       const allNotes = await Note.find({});
@@ -82,9 +80,9 @@ app.post("/api/notes", async (request, response) => {
   try {
     const newNote = new Note({
       name: note.name,
-      status: note.status,
+      status: note.status !== null ? "processed" : "pending",
       data: note.data,
-      result: note.result,
+      result: note.result !== null ? "solved" : "null",
     });
 
     const savedNote = await newNote.save();
@@ -93,6 +91,8 @@ app.post("/api/notes", async (request, response) => {
     console.log(error);
   }
 });
+
+app.use("/api/users", usersRouter);
 
 const PORT = process.env.PORT;
 

@@ -2,6 +2,12 @@
 
 This part of the project was developed as part of a programming challenge with NodeJs, Express, MongoDB and other dependencies listed in the file `package.json`
 
+## Deployment
+
+This project was deployed by using `Heroku`.
+
+The following link will redirect to the page: https://hidden-river-08736.herokuapp.com
+
 ## Available Scripts
 
 In the project directory, you can run
@@ -53,9 +59,3 @@ While the final JSON object displayed in console has the following format:
 ## Inputs - Assumptions
 
 It was assumed that the only fields availables for entering data will be two: `Job` and `Data`, the other fields are automatically completed, `"status": "pending"` and `"result": "null"` by default.
-
-## Deployment
-
-This project was deployed by using `Heroku`.
-
-The following link will redirect to the page: https://hidden-river-08736.herokuapp.com
